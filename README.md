@@ -1,7 +1,7 @@
 # FocusNext - Your Minimalist Schedule Companion
 
 Simple, elegant, and always there when you need it. 
-Focus Next sits quietly on the edge of your screen, showing exactly what you should be working on right now and what's coming up next.
+FocusNext sits quietly on the edge of your screen, showing exactly what you should be working on right now and what's coming up next.
 
 ### Your Schedule, Always in Sight
 Stay on track without switching windows or checking your calendar. 
