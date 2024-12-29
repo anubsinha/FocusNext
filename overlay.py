@@ -190,14 +190,15 @@ class TaskOverlay:
                 self.tasks = yaml.safe_load(file)
                 logger.info("Tasks loaded:")
                 for task in self.tasks['tasks']:
-                    logger.info(f"  {task['name']} - Schedule: {task['schedule']}, Hour: {self.parse_schedule(task['schedule'])}")
+                    logger.info(f"  {task['name']} - Schedule: {task['schedule']}")
         except Exception as e:
             logger.error(f"Error loading tasks: {e}")
             self.tasks = {'tasks': []}
 
     def parse_schedule(self, schedule):
         parts = schedule.split()
-        return int(parts[1])
+        # Return both minutes and hours
+        return int(parts[0]), int(parts[1])  # minutes, hours
 
     def find_current_and_next_task(self):
         now = datetime.now(self.local_tz)
@@ -208,24 +209,28 @@ class TaskOverlay:
         next_task = None
         
         for task in self.tasks['tasks']:
-            task_hour = self.parse_schedule(task['schedule'])
+            task_minutes, task_hour = self.parse_schedule(task['schedule'])
             
             if current_hour == task_hour:
-                minutes_elapsed = current_minute
-                if minutes_elapsed < task['duration']:
+                minutes_elapsed = current_minute - task_minutes  # Account for task start minutes
+                if minutes_elapsed >= 0 and minutes_elapsed < task['duration']:
                     current_task = {
                         'name': task['name'],
                         'description': task.get('description', ''),
                         'remaining': task['duration'] - minutes_elapsed
                     }
             
-            if task_hour > current_hour:
-                if next_task is None or task_hour < self.parse_schedule(next_task['schedule']):
+            if task_hour > current_hour or (task_hour == current_hour and task_minutes > current_minute):
+                if next_task is None or (
+                    task_hour < self.parse_schedule(next_task['schedule'])[1] or 
+                    (task_hour == self.parse_schedule(next_task['schedule'])[1] and 
+                     task_minutes < self.parse_schedule(next_task['schedule'])[0])
+                ):
                     next_task = task
         
         if next_task:
-            next_hour = self.parse_schedule(next_task['schedule'])
-            next_time = now.replace(hour=next_hour, minute=0, second=0, microsecond=0)
+            next_minutes, next_hour = self.parse_schedule(next_task['schedule'])
+            next_time = now.replace(hour=next_hour, minute=next_minutes, second=0, microsecond=0)
             next_task = {
                 'name': next_task['name'],
                 'description': next_task.get('description', ''),
