@@ -1,13 +1,42 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, font
 import yaml
 from datetime import datetime
 import logging
 from zoneinfo import ZoneInfo
+import markdown
+from tkinter import Text
+from html.parser import HTMLParser
 
 logging.basicConfig(level=logging.DEBUG,
                    format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+class MarkdownParser(HTMLParser):
+    def __init__(self, text_widget):
+        super().__init__()
+        self.text_widget = text_widget
+        self.current_tags = []
+        
+    def handle_starttag(self, tag, attrs):
+        if tag == 'strong':
+            self.current_tags.append('bold')
+        elif tag == 'em':
+            self.current_tags.append('italic')
+        elif tag == 'li':
+            self.text_widget.insert('end', '• ')
+            self.current_tags.append('list')
+            
+    def handle_endtag(self, tag):
+        if tag in ['strong', 'em', 'li']:
+            if self.current_tags:
+                self.current_tags.pop()
+            
+    def handle_data(self, data):
+        tags = tuple(self.current_tags)
+        self.text_widget.insert('end', data, tags)
+        if 'list' in tags:
+            self.text_widget.insert('end', '\n')
 
 class TaskOverlay:
     def __init__(self):
@@ -90,16 +119,27 @@ class TaskOverlay:
         )
         self.current_task_name.pack(anchor='w', pady=(5, 0))
         
-        self.current_task_desc = tk.Label(
+        self.current_task_desc = Text(
             current_frame,
-            text="",
+            height=6,
+            width=30,
             font=('SF Pro Display', 16),
             fg='#666666',
             bg='white',
-            wraplength=width-40,
-            justify='left'
+            wrap='word',
+            borderwidth=0,
+            highlightthickness=0
         )
-        self.current_task_desc.pack(anchor='w', pady=(5, 0))
+        self.current_task_desc.pack(anchor='w', pady=(5, 0), fill='x')
+        self.current_task_desc.configure(state='disabled')
+        
+        # Configure text tags for markdown
+        bold_font = font.Font(family='SF Pro Display', size=16, weight='bold')
+        italic_font = font.Font(family='SF Pro Display', size=16, slant='italic')
+        
+        self.current_task_desc.tag_configure('bold', font=bold_font)
+        self.current_task_desc.tag_configure('italic', font=italic_font)
+        self.current_task_desc.tag_configure('list', lmargin1=20, lmargin2=20)
         
         self.time_remaining = tk.Label(
             current_frame,
@@ -136,16 +176,24 @@ class TaskOverlay:
         )
         self.next_task_name.pack(anchor='w', pady=(5, 0))
         
-        self.next_task_desc = tk.Label(
+        self.next_task_desc = Text(
             next_frame,
-            text="",
+            height=6,
+            width=30,
             font=('SF Pro Display', 16),
             fg='#666666',
             bg='white',
-            wraplength=width-40,
-            justify='left'
+            wrap='word',
+            borderwidth=0,
+            highlightthickness=0
         )
-        self.next_task_desc.pack(anchor='w', pady=(5, 0))
+        self.next_task_desc.pack(anchor='w', pady=(5, 0), fill='x')
+        self.next_task_desc.configure(state='disabled')
+        
+        # Configure text tags for markdown
+        self.next_task_desc.tag_configure('bold', font=bold_font)
+        self.next_task_desc.tag_configure('italic', font=italic_font)
+        self.next_task_desc.tag_configure('list', lmargin1=20, lmargin2=20)
         
         self.next_task_time = tk.Label(
             next_frame,
@@ -239,27 +287,41 @@ class TaskOverlay:
         
         return current_task, next_task
 
+    def render_markdown(self, text_widget, markdown_text):
+        # Clear existing content
+        text_widget.configure(state='normal')
+        text_widget.delete('1.0', 'end')
+        
+        # Convert markdown to HTML
+        html = markdown.markdown(markdown_text or '')
+        
+        # Parse HTML and insert with formatting
+        parser = MarkdownParser(text_widget)
+        parser.feed(html)
+        
+        text_widget.configure(state='disabled')
+
     def update_display(self):
         current, next_task = self.find_current_and_next_task()
         
         if current:
             mins_remaining = max(0, int(current['remaining']))
             self.current_task_name.config(text=current['name'])
-            self.current_task_desc.config(text=current['description'])
+            self.render_markdown(self.current_task_desc, current['description'])
             self.time_remaining.config(text=f"{mins_remaining:02d}m")
         else:
             self.current_task_name.config(text="No current task")
-            self.current_task_desc.config(text="")
+            self.render_markdown(self.current_task_desc, "")
             self.time_remaining.config(text="")
         
         if next_task:
             next_time_str = next_task['time'].strftime("%I:%M %p")
             self.next_task_name.config(text=next_task['name'])
-            self.next_task_desc.config(text=next_task['description'])
+            self.render_markdown(self.next_task_desc, next_task['description'])
             self.next_task_time.config(text=f"Starting at {next_time_str}")
         else:
             self.next_task_name.config(text="No upcoming tasks")
-            self.next_task_desc.config(text="")
+            self.render_markdown(self.next_task_desc, "")
             self.next_task_time.config(text="")
         
         self.root.after(30000, self.update_display)
