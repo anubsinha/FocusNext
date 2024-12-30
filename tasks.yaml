@@ -1,21 +1,26 @@
 # tasks.yaml
 tasks:
-  - name: "Daily Planning"
-    schedule: "0 9 * * 1-5" # Fixed: removed space before 1-5
-    duration: 30
-    description: "Plan daily activities"
+  - name: "mbd"
+    schedule: "15 13 * * 1-5" # Fixed: added space before 1-5
+    duration: 90
+    description: "work on mbd"
 
   - name: "Team Meeting"
-    schedule: "0 10 * * 2,4" # Fixed: removed space before 2,4
-    duration: 60
-    description: "Bi-weekly sync"
+    schedule: "45 14 * * 1-5" # Fixed: added space before 1-5
+    duration: 45
+    description: "Daily sync"
 
   - name: "Reading"
-    schedule: "0 21 * * 1-5" # Fixed: removed space before 1-5
+    schedule: "0 21 * * 1-5" # Fixed: added space before 1-5
     duration: 60
     description: "Read a book"
 
   - name: "Learn AI"
-    schedule: "0 22 * * 1-5" # Fixed: removed space before 1-5
+    schedule: "0 22 * * 1-5" # Fixed: added space before 1-5
     duration: 90
     description: "Study AI concepts"
+
+  - name: "Sleep"
+    schedule: "30 4 * * 1-7" # Fixed: added space before 1-7
+    duration: 420
+    description: "Sleep time"
