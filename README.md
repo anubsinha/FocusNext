@@ -42,7 +42,9 @@ git clone git@github.com:anubsinha/focus-next.git
 
 Install dependencies
 ```
-cd focus-next  
+cd focus-next
+python3 -m venv .focus-next
+source .focus-next/bin/activate
 pip install -r requirements.txt
 ```
 
