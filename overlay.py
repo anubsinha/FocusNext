@@ -296,11 +296,12 @@ class TaskOverlay:
             task_start = now.replace(hour=task_hour, minute=task_minutes, second=0, microsecond=0)
             task_end = task_start + timedelta(minutes=task['duration'])
             
+            # Check for current task before adding days
             if task_start <= now < task_end:
                 minutes_elapsed = int((now - task_start).total_seconds() / 60)
                 minutes_remaining = task['duration'] - minutes_elapsed
                 
-                if minutes_remaining <= 1:  # End of task
+                if minutes_remaining <= 1:
                     self.play_sound(self.end_sound)
                     
                 current_task = {
@@ -308,11 +309,16 @@ class TaskOverlay:
                     'description': task.get('description', ''),
                     'remaining': minutes_remaining
                 }
-            
+                continue
+
+            # For next task check, handle day rollover
+            if task_start < now:
+                task_start += timedelta(days=1)
+
             # Next task reminder
             if now < task_start:
                 time_to_start = int((task_start - now).total_seconds() / 60)
-                if time_to_start == 10:  # 10 min reminder
+                if time_to_start == 10:
                     self.play_sound(self.reminder_sound)
                     
                 if next_task is None or task_start < next_task['time']:
