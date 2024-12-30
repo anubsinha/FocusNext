@@ -9,7 +9,6 @@ from tkinter import Text
 from html.parser import HTMLParser
 
 import subprocess
-import threading
 from pathlib import Path
 
 logging.basicConfig(level=logging.DEBUG,
@@ -23,15 +22,17 @@ class TaskType:
     COLLABORATION = "collaboration"
     COMMUNICATION = "communication"
     LEARNING = "learning"
+    BREAK = "break"
 
     @staticmethod
     def get_color(task_type):
         colors = {
-            "routine": "#4A90E2",      # Blue
-            "focus": "#D0021B",        # Red
+            "routine": "#4A90E2",       # Blue
+            "focus": "#D0021B",         # Red
             "collaboration": "#7ED321", # Green
             "communication": "#F5A623", # Orange
-            "learning": "#9013FE"      # Purple
+            "learning": "#9013FE",      # Purple
+            "break": "#50E3C2"          # Teal
         }
         return colors.get(task_type, "#000000")
 
