@@ -33,7 +33,7 @@ FocusNext reads your schedule and displays:
 Built with Python and love for the community.   
 No accounts, no subscriptions, no tracking - just a simple tool to help you stay focused.
 
-Get Started in Minutes    
+**Get Started in Minutes**    
 
 Clone the repo
 Install dependencies
