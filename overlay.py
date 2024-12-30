@@ -37,6 +37,32 @@ class TaskType:
 
 
 
+class MarkdownParserOld(HTMLParser):
+    def __init__(self, text_widget):
+        super().__init__()
+        self.text_widget = text_widget
+        self.current_tags = []
+        
+    def handle_starttag(self, tag, attrs):
+        if tag == 'strong':
+            self.current_tags.append('bold')
+        elif tag == 'em':
+            self.current_tags.append('italic')
+        elif tag == 'li':
+            self.text_widget.insert('end', '• ')
+            self.current_tags.append('list')
+            
+    def handle_endtag(self, tag):
+        if tag in ['strong', 'em', 'li']:
+            if self.current_tags:
+                self.current_tags.pop()
+            
+    def handle_data(self, data):
+        tags = tuple(self.current_tags)
+        self.text_widget.insert('end', data, tags)
+        if 'list' in tags:
+            self.text_widget.insert('end', '\n')
+
 class MarkdownParser(HTMLParser):
     def __init__(self, text_widget):
         super().__init__()
@@ -45,6 +71,7 @@ class MarkdownParser(HTMLParser):
         
     def handle_starttag(self, tag, attrs):
         if tag == 'strong':
+            self.text_widget.insert('end', '\n\n')  # Add spacing before bold
             self.current_tags.append('bold')
         elif tag == 'em':
             self.current_tags.append('italic')
@@ -89,7 +116,7 @@ class TaskOverlay:
         
         # Configure the window
         self.root.configure(bg='white')
-        self.root.attributes('-topmost', True, '-alpha', 0.95)
+        self.root.attributes('-topmost', True, '-alpha', 1)
         self.root.overrideredirect(True)
         
         # Position window below menu bar
@@ -372,11 +399,12 @@ class TaskOverlay:
         current, next_task = self.find_current_and_next_task()
         
         task_suggestions = {
-        "focus": "\n\n---\n🎯 Block notifications • Use noise-canceling • Set a clear goal",
-        "learning": "\n\n---\n •Take notes \n•Test yourself \n• Teach concepts to others",
-        "collaboration": "\n\n---\n👥 Be present • Share context • Confirm next steps", 
-        "communication": "\n\n---\n💬 Be clear • Listen actively • Summarize key points",
-        "routine": "\n\n---\n⚡ Use checklists • Batch similar tasks • Minimize context switching"
+        "focus": "\n🧠 Deep Work\n🎯 Block notifications • Use noise-canceling • Set a clear goal",
+        "learning": "\n📚 Study Mode\n💡 Take notes • Test yourself • Teach concepts to others",  
+        "collaboration": "\n👥 Team Time\n🤝 Be present • Share context • Confirm next steps",
+        "communication": "\n💬 Connect Mode\n👂 Be clear • Listen actively • Summarize key points", 
+        "routine": "\n⚡ Flow Mode\n✅ Use checklists • Batch similar tasks • Minimize switching",
+        "break": "\n🌿 Rest Mode\n🧘‍♂️ Step away • Move body • Reset mind"
         }
         
         if current:
@@ -387,7 +415,7 @@ class TaskOverlay:
             task_desc = current['description']
             suggestion = task_suggestions.get(current['type'], '')
             if suggestion:
-                task_desc = f"{task_desc}\n\n**Task Tips:**\n{suggestion}"
+                task_desc = f"{task_desc}\n**Task Tips:**\n{suggestion}"
                 
             self.render_markdown(self.current_task_desc, task_desc)
             self.time_remaining.config(text=f"{mins_remaining:02d}m", fg=current['color'])
@@ -404,7 +432,7 @@ class TaskOverlay:
             task_desc = next_task['description']
             suggestion = task_suggestions.get(next_task['type'], '')
             if suggestion:
-                task_desc = f"{task_desc}\n\n**Task Tips:**\n{suggestion}"
+                task_desc = f"{task_desc}\n**Task Tips:**\n{suggestion}"
                 
             self.render_markdown(self.next_task_desc, task_desc)
             self.next_task_time.config(text=f"Starting at {next_time_str}", fg=next_task['color'])
