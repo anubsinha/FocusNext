@@ -5,22 +5,50 @@ tasks:
     duration: 90
     description: "work on mbd"
 
+  - name: "mbd"
+    schedule: "0 16 * * 1-5" # Fixed: added space before 1-5
+    duration: 90
+    description: "work on mbd"
+
   - name: "Team Meeting"
     schedule: "45 14 * * 1-5" # Fixed: added space before 1-5
     duration: 45
     description: "Daily sync"
 
-  - name: "Reading"
-    schedule: "0 21 * * 1-5" # Fixed: added space before 1-5
-    duration: 60
-    description: "Read a book"
+  - name: "Build"
+    schedule: "0 21 * * 1-7"
+    duration: 120
+    description: "Make something that solves a problem"
+
+  - name: "Break"
+    schedule: "0 23 * * 1-7"
+    duration: 25
+    description: "Hydrate. Stretch. Rest."
+
+  - name: "Learn Web3"
+    schedule: "30 23 * * 1-7"
+    duration: 90
+    description: "CS251 by Dan Boneh"
+    type: "learning"
+
+  - name: "Break"
+    schedule: "0 1 * * 1-7"
+    duration: 25
+    description: "Hydrate. Stretch. Rest."
+    type: "break"
 
   - name: "Learn AI"
-    schedule: "0 22 * * 1-5" # Fixed: added space before 1-5
+    schedule: "30 1 * * 1-7"
     duration: 90
-    description: "Study AI concepts"
+    description: "Deep Learning: Foundations and Concepts"
+    type: "learning"
+
+  - name: "AudioBook /Podcast /Lecture"
+    schedule: "0 3 * * 1-7"
+    duration: 60
+    description: "Lights off, Audio on"
 
   - name: "Sleep"
-    schedule: "30 4 * * 1-7" # Fixed: added space before 1-7
+    schedule: "30 4 * * 1-7"
     duration: 420
     description: "Sleep time"
