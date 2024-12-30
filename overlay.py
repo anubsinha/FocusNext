@@ -8,9 +8,32 @@ import markdown
 from tkinter import Text
 from html.parser import HTMLParser
 
+import subprocess
+import threading
+from pathlib import Path
+
 logging.basicConfig(level=logging.DEBUG,
                    format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
+class TaskType:
+    ROUTINE = "routine"
+    FOCUS = "focus"
+    COLLABORATION = "collaboration"
+    COMMUNICATION = "communication"
+    LEARNING = "learning"
+
+    @staticmethod
+    def get_color(task_type):
+        colors = {
+            "routine": "#4A90E2",      # Blue
+            "focus": "#D0021B",        # Red
+            "collaboration": "#7ED321", # Green
+            "communication": "#F5A623", # Orange
+            "learning": "#9013FE"      # Purple
+        }
+        return colors.get(task_type, "#000000")
 
 class MarkdownParser(HTMLParser):
     def __init__(self, text_widget):
@@ -43,6 +66,13 @@ class TaskOverlay:
         self.root = tk.Tk()
         self.root.title("Task Focus")
         self.local_tz = ZoneInfo("Asia/Kolkata")
+
+        # Play sounds in a separate thread
+
+        self.sound_dir = Path("sounds")
+        self.sound_dir.mkdir(exist_ok=True)
+        self.end_sound = self.sound_dir / "end.mp3" 
+        self.reminder_sound = self.sound_dir / "reminder.mp3"
         
         # Get screen dimensions
         screen_width = self.root.winfo_screenwidth()
@@ -65,6 +95,14 @@ class TaskOverlay:
         self.load_tasks()
         self.update_display()
         self.enforce_topmost()
+
+    def play_sound(self, sound_file):
+        try:
+            subprocess.Popen(['afplay', str(sound_file)], 
+                           stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
+        except Exception as e:
+            logger.error(f"Error playing sound: {e}")
 
     def setup_ui(self, width):
         # Main frame
@@ -250,28 +288,33 @@ class TaskOverlay:
 
     def find_current_and_next_task(self):
         now = datetime.now(self.local_tz)
-        
         current_task = None
         next_task = None
         
         for task in self.tasks['tasks']:
             task_minutes, task_hour = self.parse_schedule(task['schedule'])
-            
-            # Calculate task start and end times
             task_start = now.replace(hour=task_hour, minute=task_minutes, second=0, microsecond=0)
             task_end = task_start + timedelta(minutes=task['duration'])
             
-            # Check if current time is between task start and end
             if task_start <= now < task_end:
                 minutes_elapsed = int((now - task_start).total_seconds() / 60)
+                minutes_remaining = task['duration'] - minutes_elapsed
+                
+                if minutes_remaining <= 1:  # End of task
+                    self.play_sound(self.end_sound)
+                    
                 current_task = {
                     'name': task['name'],
                     'description': task.get('description', ''),
-                    'remaining': task['duration'] - minutes_elapsed
+                    'remaining': minutes_remaining
                 }
             
-            # Next task logic
+            # Next task reminder
             if now < task_start:
+                time_to_start = int((task_start - now).total_seconds() / 60)
+                if time_to_start == 10:  # 10 min reminder
+                    self.play_sound(self.reminder_sound)
+                    
                 if next_task is None or task_start < next_task['time']:
                     next_task = {
                         'name': task['name'],
