@@ -37,14 +37,14 @@ No accounts, no subscriptions, no tracking - just a simple tool to help you stay
 
 Clone the repo  
 ```
-git clone git@github.com:anubsinha/focus-next.git
+git clone git@github.com:anubsinha/FocusNext.git
 ```
 
 Install dependencies
 ```
-cd focus-next
-python3 -m venv .focus-next
-source .focus-next/bin/activate
+cd FocusNext
+python3 -m venv .FocusNext
+source .FocusNext/bin/activate
 pip install -r requirements.txt
 ```
 
