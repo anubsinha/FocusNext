@@ -35,7 +35,11 @@ No accounts, no subscriptions, no tracking - just a simple tool to help you stay
 
 **Get Started in Minutes**    
 
-Clone the repo
+Clone the repo  
+```
+git clone git@github.com:anubsinha/focus-next.git
+```
+
 Install dependencies
 ```
 pip install -r requirements.txt
