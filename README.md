@@ -5,7 +5,7 @@ FocusNext sits quietly on the edge of your screen, showing exactly what you shou
 
 ### Your Schedule, Always in Sight
 Stay on track without switching windows or checking your calendar. 
-Focus Next reads your schedule and displays:
+FocusNext reads your schedule and displays:
 
 Your current task with a countdown timer
 The next upcoming task with its start time
@@ -14,10 +14,10 @@ A clean, distraction-free interface that stays out of your way
 
 ### Perfect For:
 
-Deep work sessions
-Time-blocked schedules
-Daily routines
-Meeting transitions
+Deep work sessions  
+Time-blocked schedules  
+Daily routines  
+Meeting transitions  
 Study sessions
 
 ### Features That Matter
