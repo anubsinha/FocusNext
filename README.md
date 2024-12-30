@@ -14,11 +14,11 @@ FocusNext reads your schedule and displays:
 
 ### Perfect For:
 
-Deep work sessions  
-Time-blocked schedules  
-Daily routines  
-Meeting transitions  
-Study sessions
+- Deep work sessions  
+- Time-blocked schedules  
+- Daily routines  
+- Meeting transitions  
+- Study sessions
 
 ### Features That Matter
 
