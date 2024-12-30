@@ -42,7 +42,7 @@ git clone git@github.com:anubsinha/focus-next.git
 
 Install dependencies
 ```
-pip install -r requirements.txt
+cd focus-next && pip install -r requirements.txt
 ```
 
 Configure your schedule
