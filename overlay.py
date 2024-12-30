@@ -35,6 +35,8 @@ class TaskType:
         }
         return colors.get(task_type, "#000000")
 
+
+
 class MarkdownParser(HTMLParser):
     def __init__(self, text_widget):
         super().__init__()
@@ -60,6 +62,8 @@ class MarkdownParser(HTMLParser):
         self.text_widget.insert('end', data, tags)
         if 'list' in tags:
             self.text_widget.insert('end', '\n')
+
+
 
 class TaskOverlay:
     def __init__(self):
@@ -365,6 +369,53 @@ class TaskOverlay:
         text_widget.configure(state='disabled')
 
     def update_display(self):
+        current, next_task = self.find_current_and_next_task()
+        
+        task_suggestions = {
+        "focus": "\n\n---\n🎯 Block notifications • Use noise-canceling • Set a clear goal",
+        "learning": "\n\n---\n •Take notes \n•Test yourself \n• Teach concepts to others",
+        "collaboration": "\n\n---\n👥 Be present • Share context • Confirm next steps", 
+        "communication": "\n\n---\n💬 Be clear • Listen actively • Summarize key points",
+        "routine": "\n\n---\n⚡ Use checklists • Batch similar tasks • Minimize context switching"
+        }
+        
+        if current:
+            mins_remaining = max(0, int(current['remaining']))
+            self.current_task_name.config(text=current['name'], fg=current['color'])
+            
+            # Combine description with task type suggestions
+            task_desc = current['description']
+            suggestion = task_suggestions.get(current['type'], '')
+            if suggestion:
+                task_desc = f"{task_desc}\n\n**Task Tips:**\n{suggestion}"
+                
+            self.render_markdown(self.current_task_desc, task_desc)
+            self.time_remaining.config(text=f"{mins_remaining:02d}m", fg=current['color'])
+        else:
+            self.current_task_name.config(text="No current task")
+            self.render_markdown(self.current_task_desc, "")
+            self.time_remaining.config(text="")
+        
+        # Same updates for next task section...
+        if next_task:
+            next_time_str = next_task['time'].strftime("%I:%M %p")
+            self.next_task_name.config(text=next_task['name'], fg=next_task['color'])
+            
+            task_desc = next_task['description']
+            suggestion = task_suggestions.get(next_task['type'], '')
+            if suggestion:
+                task_desc = f"{task_desc}\n\n**Task Tips:**\n{suggestion}"
+                
+            self.render_markdown(self.next_task_desc, task_desc)
+            self.next_task_time.config(text=f"Starting at {next_time_str}", fg=next_task['color'])
+        else:
+            self.next_task_name.config(text="No upcoming tasks")
+            self.render_markdown(self.next_task_desc, "")
+            self.next_task_time.config(text="")
+        
+        self.root.after(30000, self.update_display)
+
+    def update_display_old(self):
         current, next_task = self.find_current_and_next_task()
         
         if current:
