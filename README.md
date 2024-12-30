@@ -34,8 +34,20 @@ Built with Python and love for the community. No accounts, no subscriptions, no 
 Get Started in Minutes
 
 Clone the repo
+Install dependencies
+```
+pip install -r requirements.txt
+```
+
 Configure your schedule
+```
+vi tasks.yaml
+```
+
 Stay focused
+```
+python overlay.py
+```
 
 Built for macOS. Requires Python 3.x.
 
