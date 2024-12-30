@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, font
 import yaml
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 from zoneinfo import ZoneInfo
 import markdown
@@ -250,8 +250,6 @@ class TaskOverlay:
 
     def find_current_and_next_task(self):
         now = datetime.now(self.local_tz)
-        current_hour = now.hour
-        current_minute = now.minute
         
         current_task = None
         next_task = None
@@ -259,31 +257,27 @@ class TaskOverlay:
         for task in self.tasks['tasks']:
             task_minutes, task_hour = self.parse_schedule(task['schedule'])
             
-            if current_hour == task_hour:
-                minutes_elapsed = current_minute - task_minutes  # Account for task start minutes
-                if minutes_elapsed >= 0 and minutes_elapsed < task['duration']:
-                    current_task = {
+            # Calculate task start and end times
+            task_start = now.replace(hour=task_hour, minute=task_minutes, second=0, microsecond=0)
+            task_end = task_start + timedelta(minutes=task['duration'])
+            
+            # Check if current time is between task start and end
+            if task_start <= now < task_end:
+                minutes_elapsed = int((now - task_start).total_seconds() / 60)
+                current_task = {
+                    'name': task['name'],
+                    'description': task.get('description', ''),
+                    'remaining': task['duration'] - minutes_elapsed
+                }
+            
+            # Next task logic
+            if now < task_start:
+                if next_task is None or task_start < next_task['time']:
+                    next_task = {
                         'name': task['name'],
                         'description': task.get('description', ''),
-                        'remaining': task['duration'] - minutes_elapsed
+                        'time': task_start
                     }
-            
-            if task_hour > current_hour or (task_hour == current_hour and task_minutes > current_minute):
-                if next_task is None or (
-                    task_hour < self.parse_schedule(next_task['schedule'])[1] or 
-                    (task_hour == self.parse_schedule(next_task['schedule'])[1] and 
-                     task_minutes < self.parse_schedule(next_task['schedule'])[0])
-                ):
-                    next_task = task
-        
-        if next_task:
-            next_minutes, next_hour = self.parse_schedule(next_task['schedule'])
-            next_time = now.replace(hour=next_hour, minute=next_minutes, second=0, microsecond=0)
-            next_task = {
-                'name': next_task['name'],
-                'description': next_task.get('description', ''),
-                'time': next_time
-            }
         
         return current_task, next_task
 
