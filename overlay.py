@@ -291,34 +291,53 @@ class TaskOverlay:
         current_task = None
         next_task = None
         
+        def enrich_task_info(task_dict, raw_task):
+            task_dict['type'] = raw_task.get('type', 'routine')
+            task_dict['color'] = TaskType.get_color(task_dict['type'])
+            
         for task in self.tasks['tasks']:
             task_minutes, task_hour = self.parse_schedule(task['schedule'])
             task_start = now.replace(hour=task_hour, minute=task_minutes, second=0, microsecond=0)
-            task_end = task_start + timedelta(minutes=task['duration'])
             
-            # Check for current task before adding days
+            # Handle tasks that started yesterday
+            if task_start > now:
+                yesterday_start = task_start - timedelta(days=1)
+                yesterday_end = yesterday_start + timedelta(minutes=task['duration'])
+                if yesterday_start <= now < yesterday_end:
+                    minutes_elapsed = int((now - yesterday_start).total_seconds() / 60)
+                    current_task = {
+                        'name': task['name'],
+                        'description': task.get('description', ''),
+                        'remaining': task['duration'] - minutes_elapsed
+                    }
+                    enrich_task_info(current_task, task)
+                    # Play end sound if task is about to end
+                    if current_task['remaining'] <= 1:
+                        self.play_sound(self.end_sound)
+                    continue
+
+            # Normal current task check
+            task_end = task_start + timedelta(minutes=task['duration'])
             if task_start <= now < task_end:
                 minutes_elapsed = int((now - task_start).total_seconds() / 60)
-                minutes_remaining = task['duration'] - minutes_elapsed
-                
-                if minutes_remaining <= 1:
-                    self.play_sound(self.end_sound)
-                    
                 current_task = {
                     'name': task['name'],
                     'description': task.get('description', ''),
-                    'remaining': minutes_remaining
+                    'remaining': task['duration'] - minutes_elapsed
                 }
+                enrich_task_info(current_task, task)
+                # Play end sound if task is about to end
+                if current_task['remaining'] <= 1:
+                    self.play_sound(self.end_sound)
                 continue
 
-            # For next task check, handle day rollover
+            # Next task handling with reminder
             if task_start < now:
                 task_start += timedelta(days=1)
 
-            # Next task reminder
             if now < task_start:
                 time_to_start = int((task_start - now).total_seconds() / 60)
-                if time_to_start == 10:
+                if time_to_start == 10:  # 10-minute reminder
                     self.play_sound(self.reminder_sound)
                     
                 if next_task is None or task_start < next_task['time']:
@@ -327,6 +346,7 @@ class TaskOverlay:
                         'description': task.get('description', ''),
                         'time': task_start
                     }
+                    enrich_task_info(next_task, task)
         
         return current_task, next_task
 
@@ -349,9 +369,15 @@ class TaskOverlay:
         
         if current:
             mins_remaining = max(0, int(current['remaining']))
-            self.current_task_name.config(text=current['name'])
+            self.current_task_name.config(
+                text=current['name'],
+                fg=current['color']
+            )
             self.render_markdown(self.current_task_desc, current['description'])
-            self.time_remaining.config(text=f"{mins_remaining:02d}m")
+            self.time_remaining.config(
+                text=f"{mins_remaining:02d}m",
+                fg=current['color']
+            )
         else:
             self.current_task_name.config(text="No current task")
             self.render_markdown(self.current_task_desc, "")
@@ -359,9 +385,15 @@ class TaskOverlay:
         
         if next_task:
             next_time_str = next_task['time'].strftime("%I:%M %p")
-            self.next_task_name.config(text=next_task['name'])
+            self.next_task_name.config(
+                text=next_task['name'],
+                fg=next_task['color']
+            )
             self.render_markdown(self.next_task_desc, next_task['description'])
-            self.next_task_time.config(text=f"Starting at {next_time_str}")
+            self.next_task_time.config(
+                text=f"Starting at {next_time_str}",
+                fg=next_task['color']
+            )
         else:
             self.next_task_name.config(text="No upcoming tasks")
             self.render_markdown(self.next_task_desc, "")
