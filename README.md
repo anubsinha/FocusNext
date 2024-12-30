@@ -58,6 +58,7 @@ Stay focused
 python overlay.py
 ```
 
-Built for macOS. Requires Python 3.x.
+Built for macOS. Requires Python 3.x.  
 
-Focus Next is free and open source software under the MIT license. Contributions welcome!
+FocusNext is free and open-source software under the MIT license.   
+Contributions welcome!
